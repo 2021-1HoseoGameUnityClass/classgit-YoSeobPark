@@ -18,9 +18,16 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject bulletobj = null;
 
+    private bool move = false;
+
+    private float moveHorizontal = 0;
+
     void Update()
     {
-        PlayerMove();
+        if(move == true)
+        {
+            PlayerMove();
+        }
 
         if(Input.GetButtonDown("Jump"))
         {
@@ -33,7 +40,8 @@ public class Player : MonoBehaviour
     }
     private void PlayerMove()
         {
-            float h = Input.GetAxis("Horizontal");
+        //float h = Input.GetAxis("Horizontal");
+            float h = moveHorizontal;
             float playerSpeed = h * moveSpeed * Time.deltaTime;
             Vector3 vector3 = new Vector3();
             vector3.x = playerSpeed;
@@ -77,9 +85,42 @@ public class Player : MonoBehaviour
     }
     private void Fire()
     {
+        AudioClip audioClip = Resources.Load<AudioClip>("RangedAttack");
+        GetComponent<AudioSource>().clip = audioClip;
         GetComponent<AudioSource>().Play();
         float direction = transform.localScale.x;
         Quaternion quaternion = new Quaternion(0, 0, 0, 0);
         Instantiate(bulletobj, bulletPos.transform.position, quaternion).GetComponent<Bullet>().InstantiateBullet(direction);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.tag == "Enemy")
+        {
+            DataManager.instance.playerHP -= 1;
+            if(DataManager.instance.playerHP <0)
+            {
+                DataManager.instance.playerHP = 0;
+            }
+            UIManager.instance.PlayerHP();
+        }
+    }
+    public void OnMove(bool _right)
+    {
+        if(_right)
+        {
+            moveHorizontal = 1;
+        }
+        else
+        {
+            moveHorizontal = -1;
+        }
+
+        move = true;
+    }
+    public void OffMove()
+    {
+        moveHorizontal = 0;
+        move = false;
     }
 }
